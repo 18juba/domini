@@ -1,0 +1,89 @@
+@startuml Domino
+
+class Peca {
+    - __valor1: int
+    - __valor2: int
+    + obter_valor1(): int
+    + obter_valor2(): int
+    + obter_valor(): int
+    + __str__(): str
+}
+
+class Conjunto {
+    - __pecas: List[Peca]
+    + embaralhar(): void
+    + comprar(): Peca
+    + obter_pecas(): List[Peca]
+}
+
+class Tabuleiro {
+    - __pecas: deque[Peca]
+    - __extremo_esquerdo: int
+    - __extremo_direito: int
+    + obter_extremo_esquerdo(): int
+    + obter_extremo_direito(): int
+    + obter_pecas(): deque[Peca]
+    + esta_vazio(): bool
+    + colocar_peca(peca: Peca, lado: str): void
+    + __str__(): str
+}
+
+abstract class Jogador {
+    - __nome: str
+    - __mao: List[Peca]
+    + obter_mao(): List[Peca]
+    + adicionar_peca(peca: Peca): void
+    + remover_peca(peca: Peca): void
+    + nome(): str
+    + {abstract} escolher_jogada(jogadas_possiveis: List[Tuple[Peca, str]]): Tuple[Peca, str]
+    + jogar(tabuleiro: Tabuleiro, estoque: Conjunto): Tuple[Peca, str]
+    + jogavel(peca: Peca, extremo: int): bool
+}
+
+class Humano {
+    + escolher_jogada(jogadas_possiveis: List[Tuple[Peca, str]]): Tuple[Peca, str]
+}
+
+class ComputadorAleatorio {
+    + escolher_jogada(jogadas_possiveis: List[Tuple[Peca, str]]): Tuple[Peca, str]
+}
+
+class ComputadorInteligente {
+    + escolher_jogada(jogadas_possiveis: List[Tuple[Peca, str]]): Tuple[Peca, str]
+}
+
+class Placar {
+    - __jogadores: List[Jogador]
+    + obter_jogadores(): List[Jogador]
+    + adicionar_jogador(jogador: Jogador): void
+    + obter_pontos(jogador: Jogador): int
+}
+
+class Jogo {
+    - __jogador1: Jogador
+    - __jogador2: Jogador
+    - __pontos: Dict[str, int]
+    + obter_jogador1(): Jogador
+    + obter_jogador2(): Jogador
+    + obter_pontos(): Dict[str, int]
+    + distribuir_pecas(estoque: Conjunto): void
+    + jogar_rodada(): Tuple[Jogador, int]
+    + jogar_partida(): Tuple[Jogador, Dict[str, int]]
+}
+
+' Relacionamentos
+Jogador <|-- Humano
+Jogador <|-- ComputadorAleatorio
+Jogador <|-- ComputadorInteligente
+
+Jogo "1" *-- "2" Jogador : tem
+Jogo ..> Conjunto : usa
+Jogo ..> Tabuleiro : usa
+
+Jogador "1" o-- "*" Peca : possui
+Tabuleiro "1" o-- "*" Peca : contém
+Conjunto "1" *-- "*" Peca : contém
+
+Placar "1" -- "*" Jogador : monitora
+
+@enduml

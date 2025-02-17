@@ -48,40 +48,49 @@ class Conjunto:
 
 class Tabuleiro:
     def __init__(self):
-        self.pecas = deque()
-        self.extremo_esquerdo = None
-        self.extremo_direito = None
+        self.__pecas = deque()
+        self.__extremo_esquerdo = None
+        self.__extremo_direito = None
+    
+    def obter_extremo_esquerdo(self):
+        return self.__extremo_esquerdo
+    
+    def obter_extremo_direito(self):
+        return self.__extremo_direito
+    
+    def obter_pecas(self):
+        return self.__pecas
     
     def esta_vazio(self):
-        return len(self.pecas) == 0
+        return len(self.__pecas) == 0
     
     def colocar_peca(self, peca, lado):
         if self.esta_vazio():
-            self.pecas.append(peca)
-            self.extremo_esquerdo = peca.obter_valor1()
-            self.extremo_direito = peca.obter_valor2()
+            self.__pecas.append(peca)
+            self.__extremo_esquerdo = peca.obter_valor1()
+            self.__extremo_direito = peca.obter_valor2()
         else:
             if lado == 'esquerda':
-                if peca.obter_valor1() == self.extremo_esquerdo:
+                if peca.obter_valor1() == self.__extremo_esquerdo:
                     novo_valor = peca.obter_valor2()
-                elif peca.obter_valor2() == self.extremo_esquerdo:
+                elif peca.obter_valor2() == self.__extremo_esquerdo:
                     novo_valor = peca.obter_valor1()
                 else:
-                    novo_valor = self.extremo_esquerdo
-                self.pecas.appendleft(peca)
-                self.extremo_esquerdo = novo_valor
+                    novo_valor = self.__extremo_esquerdo
+                self.__pecas.appendleft(peca)
+                self.__extremo_esquerdo = novo_valor
             elif lado == 'direita':
-                if peca.obter_valor1() == self.extremo_direito:
+                if peca.obter_valor1() == self.__extremo_direito:
                     novo_valor = peca.obter_valor2()
-                elif peca.obter_valor2() == self.extremo_direito:
+                elif peca.obter_valor2() == self.__extremo_direito:
                     novo_valor = peca.obter_valor1()
                 else:
-                    novo_valor = self.extremo_direito
-                self.pecas.append(peca)
-                self.extremo_direito = novo_valor
+                    novo_valor = self.__extremo_direito
+                self.__pecas.append(peca)
+                self.__extremo_direito = novo_valor
 
     def __str__(self):
-        return ' '.join(str(p) for p in self.pecas)
+        return ' '.join(str(p) for p in self.__pecas)
 
 def soma_pontos(mao):
     return sum(peca.obter_valor() for peca in mao)
@@ -114,9 +123,9 @@ class Jogador:
         else:
             for peca in self.__mao:
                 lados_validos = []
-                if self.jogavel(peca, tabuleiro.extremo_esquerdo):
+                if self.jogavel(peca, tabuleiro.obter_extremo_esquerdo()):
                     lados_validos.append('esquerda')
-                if self.jogavel(peca, tabuleiro.extremo_direito):
+                if self.jogavel(peca, tabuleiro.obter_extremo_direito()):
                     lados_validos.append('direita')
                 if lados_validos:
                     for lado in lados_validos:
@@ -138,9 +147,9 @@ class Jogador:
             if tabuleiro.esta_vazio():
                 lados_validos.append('direita')
             else:
-                if self.jogavel(peca_comprada, tabuleiro.extremo_esquerdo):
+                if self.jogavel(peca_comprada, tabuleiro.obter_extremo_esquerdo()):
                     lados_validos.append('esquerda')
-                if self.jogavel(peca_comprada, tabuleiro.extremo_direito):
+                if self.jogavel(peca_comprada, tabuleiro.obter_extremo_direito()):
                     lados_validos.append('direita')
             if lados_validos:
                 self.remover_peca(peca_comprada)
@@ -196,42 +205,76 @@ class Placar:
     def obter_jogadores(self):
         return self.__jogadores
 
+    def adicionar_jogador(self, jogador):
+        self.__jogadores.append(jogador)
+
+    def obter_pontos(self, jogador):
+        return self.__jogadores.index(jogador)
+
 class Jogo:
     def __init__(self, jogador1, jogador2):
-        self.jogador1 = jogador1
-        self.jogador2 = jogador2
-        self.pontos = {jogador1.nome(): 0, jogador2.nome(): 0}
+        self.__jogador1 = jogador1
+        self.__jogador2 = jogador2
+        self.__pontos = {jogador1.nome(): 0, jogador2.nome(): 0}
+    
+    def obter_jogador1(self):
+        return self.__jogador1
+    
+    def obter_jogador2(self):
+        return self.__jogador2
+    
+    def obter_pontos(self):
+        return self.__pontos
 
     def distribuir_pecas(self, estoque):
         for _ in range(7):
-            self.jogador1.adicionar_peca(estoque.comprar())
-            self.jogador2.adicionar_peca(estoque.comprar())
+            self.__jogador1.adicionar_peca(estoque.comprar())
+            self.__jogador2.adicionar_peca(estoque.comprar())
     
     def jogar_rodada(self):
         estoque = Conjunto()
         estoque.embaralhar()
-        self.jogador1._Jogador__mao = []
-        self.jogador2._Jogador__mao = []
+        self.__jogador1._Jogador__mao = []
+        self.__jogador2._Jogador__mao = []
         self.distribuir_pecas(estoque)
         tabuleiro = Tabuleiro()
         turno = random.choice([0, 1])
         passes_consecutivos = 0
+        tem_humano = isinstance(self.__jogador1, Humano) or isinstance(self.__jogador2, Humano)
 
         while True:
             if turno == 0:
-                jogador_atual = self.jogador1
-                adversario = self.jogador2
+                jogador_atual = self.__jogador1
+                adversario = self.__jogador2
             else:
-                jogador_atual = self.jogador2
-                adversario = self.jogador1
+                jogador_atual = self.__jogador2
+                adversario = self.__jogador1
+            
+            if tem_humano:
+                limpar_terminal()
+                print("\nTabuleiro atual:")
+                if not tabuleiro.esta_vazio():
+                    print(tabuleiro)
+                else:
+                    print("[Tabuleiro vazio]")
+                print(f"\nVez de: {jogador_atual.nome().upper()}")
+                if isinstance(jogador_atual, Humano):
+                    input("Pressione Enter para continuar...")
             
             jogada = jogador_atual.jogar(tabuleiro, estoque)
             if jogada is not None:
                 peca, lado = jogada
                 tabuleiro.colocar_peca(peca, lado)
                 passes_consecutivos = 0
+                
+                if tem_humano:
+                    print(f"\n{jogador_atual.nome()} jogou {peca} no lado {lado}")
+                    if isinstance(adversario, Humano):
+                        input("Pressione Enter para continuar...")
             else:
                 passes_consecutivos += 1
+                if tem_humano:
+                    print(f"\n{jogador_atual.nome()} passou a vez!")
                 if passes_consecutivos >= 2:
                     pontos_jogador = soma_pontos(jogador_atual.obter_mao())
                     pontos_adversario = soma_pontos(adversario.obter_mao())
@@ -243,43 +286,57 @@ class Jogo:
                         return None, 0
             
             if len(jogador_atual.obter_mao()) == 0:
-                return jogador_atual, soma_pontos(adversario.obter_mao())
+                if tem_humano:
+                    print(f"\n{jogador_atual.nome()} ganhou a rodada!")
+                pontos = soma_pontos(adversario.obter_mao())
+                return jogador_atual, pontos
             
             turno = 1 - turno
 
     def jogar_partida(self):
-        while self.pontos[self.jogador1.nome()] < 100 and self.pontos[self.jogador2.nome()] < 100:
+        tem_humano = isinstance(self.__jogador1, Humano) or isinstance(self.__jogador2, Humano)
+        while max(self.__pontos.values()) < 100:
             vencedor, pontos_rodada = self.jogar_rodada()
             if vencedor is not None:
-                self.pontos[vencedor.nome()] += pontos_rodada
-        if self.pontos[self.jogador1.nome()] >= 100:
-            return self.jogador1, self.pontos
+                self.__pontos[vencedor.nome()] += pontos_rodada
+                if tem_humano:
+                    print(f"\nPlacar atual:")
+                    for jogador, pontos in self.__pontos.items():
+                        print(f"{jogador}: {pontos} pontos")
+                    input("\nPressione Enter para continuar...")
+                    limpar_terminal()
+            
+            if max(self.__pontos.values()) >= 100:
+                break
+        
+        if self.__pontos[self.__jogador1.nome()] >= 100:
+            return self.__jogador1, self.__pontos
         else:
-            return self.jogador2, self.pontos
+            return self.__jogador2, self.__pontos
 
 def simular_partidas(num_partidas):
-    resultados_Aleatorio = []
-    resultados_Inteligente = []
-    partidas = []
-    total_Aleatorio = 0
-    total_Inteligente = 0
+    __resultados_Aleatorio = []
+    __resultados_Inteligente = []
+    __partidas = []
+    __total_Aleatorio = 0
+    __total_Inteligente = 0
 
     for i in range(1, num_partidas + 1):
-        jogador_Aleatorio = ComputadorAleatorio("Aleatorio")
-        jogador_Inteligente = ComputadorInteligente("Inteligente")
+        jogador_Aleatorio = ComputadorAleatorio("Neymar")
+        jogador_Inteligente = ComputadorInteligente("Computador Inteligente")
         jogo = Jogo(jogador_Aleatorio, jogador_Inteligente)
         vencedor, placar_final = jogo.jogar_partida()
         if vencedor is not None:
-            if vencedor.nome() == "Aleatorio":
-                total_Aleatorio += 1
-            elif vencedor.nome() == "Inteligente":
-                total_Inteligente += 1
-        partidas.append(i)
-        resultados_Aleatorio.append(total_Aleatorio)
-        resultados_Inteligente.append(total_Inteligente)
+            if vencedor.nome() == "Neymar":
+                __total_Aleatorio += 1
+            elif vencedor.nome() == "Computador Inteligente":
+                __total_Inteligente += 1
+        __partidas.append(i)
+        __resultados_Aleatorio.append(__total_Aleatorio)
+        __resultados_Inteligente.append(__total_Inteligente)
     
-    plt.plot(partidas, resultados_Aleatorio, label="Computador Aleatório")
-    plt.plot(partidas, resultados_Inteligente, label="Computador Inteligente")
+    plt.plot(__partidas, __resultados_Aleatorio, label="Neymar", color="blue", linestyle="solid")
+    plt.plot(__partidas, __resultados_Inteligente, label="Computador Inteligente", color="red", linestyle="solid")
     plt.xlabel("Partidas")
     plt.ylabel("Vitórias")
     plt.title("Evolução dos resultados nas simulações")
@@ -293,21 +350,21 @@ def simular_partidas(num_partidas):
 rodando = True
 
 while rodando:
-    print("|Dominó da Galera|")
+    print("Dominó")
     print("Deseja jogar contra a máquina ou simular partidas ?")
     selecao = int(input("1 para jogar, 2 para simular partidas: "))
 
     if selecao == 1:
         nome = input("Digite seu nome: ")
         jogador_humano = Humano(nome)
-        print("Qual máquina você quer enfrentar ?")
-        dificuldade = int(input("(1 para fácil, 2 para inteligente): "))
+        print("Qual adversário você quer enfrentar ?")
+        dificuldade = int(input("1 - Neymar \n2 - Computador Inteligente:\n"))
         while dificuldade not in [1, 2]:
             dificuldade = int(input("Escolha uma opção válida (1 ou 2): "))
         if dificuldade == 1:
-            jogador_maquina = ComputadorAleatorio("Máquina Aleatória")
+            jogador_maquina = ComputadorAleatorio("Neymar")
         else:
-            jogador_maquina = ComputadorInteligente("Máquina Inteligente")
+            jogador_maquina = ComputadorInteligente("Computador Inteligente")
         jogo = Jogo(jogador_humano, jogador_maquina)
 
         vencedor, placar_final = jogo.jogar_partida()
